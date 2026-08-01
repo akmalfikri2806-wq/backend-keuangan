@@ -2,10 +2,12 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 require('dotenv').config();
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'build')));
 
 // Koneksi Database
 const db = mysql.createConnection({
@@ -114,6 +116,10 @@ app.delete('/api/transactions/:id', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Transaksi berhasil dihapus' });
     });
+});
+
+app.get(/^(?!\/api).+/, (req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 app.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
