@@ -9,18 +9,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Koneksi Database
-const db = mysql.createConnection({
+// KODE BARU (Aman dari timeout/inactivity)
+const db = mysql.createPool({
     host: process.env.DB_HOST || process.env.MYSQLHOST,
     user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
     password: process.env.DB_PASS || process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD,
     database: process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE,
-    port: process.env.DB_PORT || process.env.MYSQLPORT || 3306
+    port: process.env.DB_PORT || process.env.MYSQLPORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect((err) => {
-    if (err) throw err;
-    console.log('Database MySQL Terhubung!');
+// Tes koneksi pool
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error('Gagal terhubung ke Database:', err);
+    } else {
+        console.log('Database MySQL Terhubung via Pool!');
+        connection.release();
+    }
 });
 
 // 1. Ambil Semua Transaksi
